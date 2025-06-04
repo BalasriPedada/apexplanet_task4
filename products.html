@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Listing - Filter & Sort</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f2f4f8;
+      color: #333;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .category-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #6200ea;
+      background: white;
+      color: #6200ea;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+      user-select: none;
+    }
+
+    .category-btn:hover,
+    .category-btn.active {
+      background: #6200ea;
+      color: white;
+      box-shadow: 0 4px 10px rgba(98,0,234,0.5);
+    }
+
+    .search-sort {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    #searchInput, #sortSelect {
+      padding: 10px 15px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 18px 30px rgba(98,0,234,0.3);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      background: #eee;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    }
+
+    .product-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #2c3e50;
+      flex-grow: 1;
+    }
+
+    .product-category {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #7f8c8d;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .product-price {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #6200ea;
+      margin-bottom: 8px;
+    }
+
+    .product-rating {
+      color: #f39c12;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    @media (max-width: 600px) {
+      .category-btn {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Product Listing</h1>
+
+    <div class="controls">
+      <div class="search-sort">
+        <input type="text" id="searchInput" placeholder="Search products..." />
+        <select id="sortSelect">
+          <option value="">Sort by</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="rating-desc">Rating: High to Low</option>
+        </select>
+      </div>
+      <div class="categories" id="categoryList"></div>
+    </div>
+
+    <div class="products" id="productList"></div>
+  </div>
+
+  <script>
+    const products = [
+      { id: 1, name: "Classic Blue Shirt", category: "Shirts", price: 45, rating: 4.3, image: "https://image.hm.com/assets/hm/6d/6f/6d6f5f40f1d0fde4bd0aab53771f81c031735192.jpg?imwidth=1260" },
+      { id: 2, name: "Red Polo Shirt", category: "Shirts", price: 35, rating: 4.0, image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80" },
+      { id: 3, name: "Black Leather Jacket", category: "Jackets", price: 150, rating: 4.7, image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" },
+      { id: 4, name: "Brown Casual Jacket", category: "Jackets", price: 120, rating: 4.5, image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=400&q=80" },
+      { id: 5, name: "Blue Denim Jeans", category: "Jeans", price: 60, rating: 4.1, image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80" },
+      { id: 6, name: "Slim Fit Jeans", category: "Jeans", price: 70, rating: 4.4, image: "https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=400&q=80" },
+      { id: 7, name: "White Cotton T-Shirt", category: "T-Shirts", price: 20, rating: 3.9, image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80" },
+      { id: 8, name: "Graphic T-Shirt", category: "T-Shirts", price: 25, rating: 4.0, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=400&q=80" }
+    ];
+
+    const categoryListEl = document.getElementById('categoryList');
+    const productListEl = document.getElementById('productList');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+
+    const categories = ["All", ...new Set(products.map(p => p.category))];
+
+    function renderCategories() {
+      categoryListEl.innerHTML = "";
+      categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.textContent = cat;
+        btn.classList.add("category-btn");
+        if (cat === "All") btn.classList.add("active");
+
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          applyFilters();
+        });
+
+        categoryListEl.appendChild(btn);
+      });
+    }
+
+    function renderProducts(items) {
+      productListEl.innerHTML = "";
+      if (items.length === 0) {
+        productListEl.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#777;'>No products found.</p>";
+        return;
+      }
+      items.forEach(({ name, category, price, rating, image }) => {
+        const card = document.createElement("div");
+        card.classList.add("product-card");
+        card.innerHTML = `
+          <img src="${image}" alt="Image of ${name}" class="product-image" />
+          <div class="product-name">${name}</div>
+          <div class="product-category">${category}</div>
+          <div class="product-price">$${price.toFixed(2)}</div>
+          <div class="product-rating">${"★".repeat(Math.round(rating))}${"☆".repeat(5 - Math.round(rating))} (${rating.toFixed(1)})</div>
+        `;
+        productListEl.appendChild(card);
+      });
+    }
+
+    function applyFilters() {
+      const keyword = searchInput.value.toLowerCase();
+      const activeCategory = document.querySelector(".category-btn.active").textContent;
+      const sortValue = sortSelect.value;
+
+      let filtered = products.filter(p =>
+        p.name.toLowerCase().includes(keyword) &&
+        (activeCategory === "All" || p.category === activeCategory)
+      );
+
+      if (sortValue === "price-asc") filtered.sort((a, b) => a.price - b.price);
+      if (sortValue === "price-desc") filtered.sort((a, b) => b.price - a.price);
+      if (sortValue === "rating-desc") filtered.sort((a, b) => b.rating - a.rating);
+
+      renderProducts(filtered);
+    }
+
+    // Events
+    searchInput.addEventListener("input", applyFilters);
+    sortSelect.addEventListener("change", applyFilters);
+
+    // Init
+    renderCategories();
+    renderProducts(products);
+  </script>
+</body>
+</html>

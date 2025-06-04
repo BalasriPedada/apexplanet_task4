@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About Me - Balasri</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --accent: #f472b6;
+      --bg: #fdf4ff;
+      --text: #1f2937;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--primary);
+      padding: 1.2rem 2rem;
+      border-bottom-left-radius: 60px;
+      border-bottom-right-radius: 60px;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+    }
+
+    /* Left side: avatar + name + contacts */
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-left img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid var(--accent);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .header-text {
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .header-text h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    .contact-info {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 0.25rem;
+      font-size: 0.95rem;
+      color: #d1d5db; /* lighter white */
+    }
+
+    .contact-info span {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .contact-info svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* Navigation on the right */
+    nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    nav a:hover {
+      background-color: var(--accent);
+      color: var(--primary);
+      box-shadow: 0 6px 15px rgba(244, 114, 182, 0.6);
+    }
+
+    /* Container and footer remain unchanged */
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto 4rem;
+      padding: 3rem 2rem;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+      text-align: left;
+    }
+
+    .info h3 {
+      color: black;
+      font-size: 30;
+    }
+
+    .info ul {
+      list-style: none;
+      padding-left: 10;
+      text-align: left;
+      max-width: 500px;
+      margin: 50 auto;
+    }
+
+    .info li::before {
+      content: "\2022";
+      color: var(--accent);
+      font-weight: bold;
+      display: inline-block;
+      width: 1em;
+      margin-left: -1em;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <img
+        src="https://static.vecteezy.com/system/resources/previews/005/544/718/original/profile-icon-design-free-vector.jpg"
+        alt="Balasri Profile Picture"
+      />
+      <div class="header-text">
+        <h1>Balasri Pedada</h1>
+        <div class="contact-info">
+          <span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79a15.466 15.466 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21 11.36 11.36 0 003.56 1.12 1 1 0 011 .99v3.56a1 1 0 01-.91 1 19 19 0 01-16.24-16.25 1 1 0 011-0.91h3.56a1 1 0 011 .99 11.36 11.36 0 001.12 3.56 1 1 0 01-.21 1.11l-2.2 2.2z"/></svg>
+            +91 9876543210
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 2l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
+            balasri2005@example.com
+          </span>
+        </div>
+      </div>
+    </div>
+    <nav>
+      <a href="task4.html">Portfolio</a>
+      <a href="keepnotes.html">KeepNotes</a>
+      <a href="products.html">Products</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="info">
+      <h3 style="text-align: left;">🔖CareeerObjective</h3>
+      <p>
+        I'm a passionate Computer Science student at JNTU-GV with a flair for creativity and
+        problem-solving. I specialize in crafting modern web applications with clean code and intuitive
+        design.
+      </p>
+
+      <h3>💻 Technical Skills</h3>
+      <ul>
+        <li>Frontend: HTML, CSS, Tailwind, JavaScript, React</li>
+        <li>Backend: Node,Express</li>
+        <li>Database: PostgreSQL, MongoDb</li>
+        <li>Tools: GitHub, VS Code, Figma, Motiff</li>
+      </ul>
+
+      <h3>✍️ Interests</h3>
+      <p>
+        I enjoy writing, designing creative user experiences, and building educational tools like LMS and
+        interactive applications. I also love exploring new tech stacks and UI trends.
+      </p>
+      <h3>🗂️Projects</h3>
+        <p>Academic project - Basic Flashcard system using Python GUI</p>
+        <p>Internship Project - Social Connect Component on HRMS using MERN</p>
+        <h3>📈Technical Experience</h3>
+        <p>Web Development intern at Octanet services</p>
+        <p>Web development(html,css,js) intern at ApexPlanet</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Keep Notes App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #eef2f7;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: #6200ea;
+      color: white;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 10;
+      box-sizing: border-box;
+      height: 56px;
+    }
+
+    .menu-icon, .profile-icon {
+      cursor: pointer;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .profile-icon {
+      width: 36px;
+      height: 36px;
+      background: #3700b3;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    .search-bar {
+      flex-grow: 1;
+      margin: 0 1rem;
+      max-width: 600px;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.4rem 0.75rem;
+      border-radius: 20px;
+      border: none;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 60px;
+      background: #d1c4e9;
+      padding: 1rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      align-items: center;
+      height: calc(100vh - 56px);
+      position: fixed;
+      top: 56px;
+      left: 0;
+      border-right: 2px solid #b39ddb;
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .sidebar button {
+      background: #fff;
+      border: 1px solid #ccc;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #6200ea;
+      border-radius: 50%;
+      padding: 0.5rem;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+
+    .sidebar button:hover {
+      background: #ede7f6;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: 60px;
+      margin-top: 56px;
+      padding: 1rem 1.5rem;
+      flex-grow: 1;
+      overflow-y: auto;
+      min-height: calc(100vh - 56px);
+      box-sizing: border-box;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    /* Note panels */
+    .note-panel {
+      display: none;
+      background: white;
+      padding: 1rem 1.25rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .note-panel.active {
+      display: block;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      margin: 0.5rem 0 1rem 0;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 120px;
+    }
+
+    /* List items */
+    .note-list-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .note-list-item input[type="checkbox"] {
+      transform: scale(1.3);
+      cursor: pointer;
+    }
+
+    .note-list-item input[type="text"] {
+      flex-grow: 1;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 0.3rem 0.5rem;
+    }
+
+    .add-list-item {
+      font-size: 1.4rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #6200ea;
+      margin-top: 0.5rem;
+      user-select: none;
+    }
+
+    /* Drawing */
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 1rem;
+      max-width: 100%;
+      display: block;
+    }
+
+    .brush-controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    /* Buttons */
+    .btn {
+      background-color: #6200ea;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 1rem;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background-color: #3700b3;
+    }
+
+    /* Empty State */
+    #emptyState {
+      color: #555;
+      font-size: 1.2rem;
+      margin-top: 3rem;
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <span class="menu-icon" onclick="toggleSidebar()">☰</span>
+
+    <div class="search-bar">
+      <input
+        type="search"
+        id="searchInput"
+        placeholder="Search notes..."
+        oninput="searchNotes()"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="profile-icon" title="Profile">P</div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <button title="Text Note" onclick="showPanel('textPanel')">📝</button>
+    <button title="List Note" onclick="showPanel('listPanel')">📋</button>
+    <button title="Drawing" onclick="showPanel('drawPanel')">🎨</button>
+    <button title="Audio Note" onclick="showPanel('audioPanel')">🎤</button>
+    <button title="Image Note" onclick="showPanel('imagePanel')">🖼️</button>
+    <button title="Saved Notes" onclick="showPanel('savedNotesPanel')">💾</button>
+  </div>
+
+  <main class="main" id="mainContainer">
+
+    <div id="emptyState">Select a note type or open saved notes to begin.</div>
+
+    <section id="textPanel" class="note-panel">
+      <input type="text" id="textTitle" placeholder="Title" />
+      <textarea id="textContent" placeholder="Take a note..."></textarea>
+      <button class="btn" onclick="saveTextNote()">Save</button>
+      <button class="btn" style="background:#b00020;" onclick="deleteTextNote()">Delete</button>
+    </section>
+
+    <section id="listPanel" class="note-panel">
+      <input type="text" id="listTitle" placeholder="List Title" />
+      <div id="listItems">
+        <div class="note-list-item">
+          <input type="checkbox" />
+          <input type="text" placeholder="List item..." />
+        </div>
+      </div>
+      <button class="add-list-item" onclick="addListItem()">＋ Add item</button><br />
+      <button class="btn" onclick="saveListNote()">Save</button>
+      <button class="btn" style="background:#b00020;" onclick="deleteListNote()">Delete</button>
+    </section>
+
+    <section id="drawPanel" class="note-panel">
+      <div class="brush-controls">
+        <label for="colorPicker">Color:</label>
+        <input type="color" id="colorPicker" value="#6200ea" />
+        <label for="brushSize">Brush size:</label>
+        <input type="range" id="brushSize" min="1" max="20" value="3" />
+        <button class="btn" style="background:#b00020; padding:0.3rem 0.7rem; font-size:1.2rem;" onclick="setEraser()">🧽 Eraser</button>
+        <button class="btn" style="padding:0.3rem 0.7rem; font-size:1.2rem;" onclick="setBrush()">🖌️ Brush</button>
+      </div>
+      <canvas id="drawingCanvas" width="700" height="350"></canvas>
+      <button class="btn" onclick="saveDrawing()">Save</button>
+      <button class="btn" style="background:#b00020;" onclick="clearCanvas()">Clear</button>
+    </section>
+
+    <section id="audioPanel" class="note-panel">
+      <input type="text" id="audioTitle" placeholder="Audio Note Title" />
+      <div>
+        <button class="btn" onclick="startRecording()">Start Recording</button>
+        <button class="btn" style="background:#b00020;" onclick="stopRecording()">Stop Recording</button>
+      </div>
+      <audio id="audioPlayback" controls style="margin-top:1rem; width: 100%; display:none;"></audio>
+      <button class="btn" onclick="saveAudioNote()" style="margin-top:1rem;">Save</button>
+      <button class="btn" style="background:#b00020;" onclick="deleteAudioNote()">Delete</button>
+    </section>
+
+    <section id="imagePanel" class="note-panel">
+      <input type="text" id="imageTitle" placeholder="Image Note Title" />
+      <input type="file" id="imageInput" accept="image/*" />
+      <div id="storedImages" style="margin-top:1rem; display: flex; flex-wrap: wrap; gap: 10px;"></div>
+      <button class="btn" onclick="saveImageNote()">Save</button>
+      <button class="btn" style="background:#b00020;" onclick="deleteImageNote()">Delete</button>
+    </section>
+
+    <section id="savedNotesPanel" class="note-panel">
+      <h2>Saved Notes</h2>
+      <div id="savedNotesList" style="max-height: 400px; overflow-y: auto;"></div>
+      <button class="btn" onclick="clearSavedNotes()">Clear All Saved Notes</button>
+    </section>
+
+  </main>
+
+  <script>
+    // Sidebar toggle (optional if you want it collapsible)
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar.style.transform === 'translateX(-100%)') {
+        sidebar.style.transform = 'translateX(0)';
+      } else {
+        sidebar.style.transform = 'translateX(-100%)';
+      }
+    }
+
+    // Hide all panels
+    function clearPanels() {
+      document.querySelectorAll('.note-panel').forEach(panel => {
+        panel.style.display = 'none';
+      });
+      const emptyState = document.getElementById('emptyState');
+      if (emptyState) emptyState.style.display = 'none';
+    }
+
+    // Show the empty state message
+    function showEmptyState() {
+      clearPanels();
+      const emptyState = document.getElementById('emptyState');
+      if (emptyState) emptyState.style.display = 'block';
+    }
+
+    // Show specific panel
+    function showPanel(id) {
+      clearPanels();
+      const panel = document.getElementById(id);
+      if (panel) {
+        panel.style.display = 'block';
+      }
+    }
+
+    // Initial load: no panel shown, just empty state
+    window.onload = () => {
+      showEmptyState();
+      loadSavedNotes();
+      loadStoredImages();
+    };
+
+    // ====== TEXT NOTE ======
+    function saveTextNote() {
+      const title = document.getElementById('textTitle').value.trim();
+      const content = document.getElementById('textContent').value.trim();
+      if (!title) {
+        alert('Please enter a title');
+        return;
+      }
+      const notes = JSON.parse(localStorage.getItem('textNotes') || '{}');
+      notes[title] = content;
+      localStorage.setItem('textNotes', JSON.stringify(notes));
+      alert('Text note saved!');
+      loadSavedNotes();
+    }
+
+    function deleteTextNote() {
+      const title = document.getElementById('textTitle').value.trim();
+      if (!title) {
+        alert('Enter the title of the note to delete');
+        return;
+      }
+      const notes = JSON.parse(localStorage.getItem('textNotes') || '{}');
+      if (notes[title]) {
+        delete notes[title];
+        localStorage.setItem('textNotes', JSON.stringify(notes));
+        alert('Text note deleted!');
+        document.getElementById('textTitle').value = '';
+        document.getElementById('textContent').value = '';
+        loadSavedNotes();
+      } else {
+        alert('No such note found');
+      }
+    }
+
+    // ====== LIST NOTE ======
+    function addListItem() {
+      const list = document.getElementById('listItems');
+      const item = document.createElement('div');
+      item.className = 'note-list-item';
+      item.innerHTML = `
+        <input type="checkbox" />
+        <input type="text" placeholder="List item..." />
+      `;
+      list.appendChild(item);
+    }
+
+    function saveListNote() {
+      const title = document.getElementById('listTitle').value.trim();
+      if (!title) {
+        alert('Please enter a list title');
+        return;
+      }
+      const items = [];
+      document.querySelectorAll('#listItems .note-list-item').forEach(item => {
+        const checked = item.querySelector('input[type=checkbox]').checked;
+        const text = item.querySelector('input[type=text]').value.trim();
+        if (text) {
+          items.push({ text, checked });
+        }
+      });
+      if (items.length === 0) {
+        alert('Add at least one list item');
+        return;
+      }
+      const lists = JSON.parse(localStorage.getItem('listNotes') || '{}');
+      lists[title] = items;
+      localStorage.setItem('listNotes', JSON.stringify(lists));
+      alert('List note saved!');
+      loadSavedNotes();
+    }
+
+    function deleteListNote() {
+      const title = document.getElementById('listTitle').value.trim();
+      if (!title) {
+        alert('Enter the title of the list to delete');
+        return;
+      }
+      const lists = JSON.parse(localStorage.getItem('listNotes') || '{}');
+      if (lists[title]) {
+        delete lists[title];
+        localStorage.setItem('listNotes', JSON.stringify(lists));
+        alert('List note deleted!');
+        document.getElementById('listTitle').value = '';
+        document.getElementById('listItems').innerHTML = '';
+        addListItem();
+        loadSavedNotes();
+      } else {
+        alert('No such list found');
+      }
+    }
+
+    // ====== DRAWING ======
+    const canvas = document.getElementById('drawingCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let currentColor = document.getElementById('colorPicker').value;
+    let brushSize = +document.getElementById('brushSize').value;
+    let isEraser = false;
+
+    document.getElementById('colorPicker').addEventListener('input', e => {
+      currentColor = e.target.value;
+      if (!isEraser) {
+        ctx.strokeStyle = currentColor;
+      }
+    });
+    document.getElementById('brushSize').addEventListener('input', e => {
+      brushSize = +e.target.value;
+      ctx.lineWidth = brushSize;
+    });
+
+    canvas.addEventListener('mousedown', e => {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      drawing = false;
+      ctx.beginPath();
+    });
+
+    canvas.addEventListener('mouseout', () => {
+      drawing = false;
+      ctx.beginPath();
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      if (!drawing) return;
+      ctx.lineWidth = brushSize;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = isEraser ? '#eef2f7' : currentColor;
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    function setEraser() {
+      isEraser = true;
+    }
+    function setBrush() {
+      isEraser = false;
+      ctx.strokeStyle = currentColor;
+    }
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function saveDrawing() {
+      const title = prompt('Enter title for drawing:');
+      if (!title) return;
+      const dataURL = canvas.toDataURL();
+      let drawings = JSON.parse(localStorage.getItem('drawNotes') || '{}');
+      drawings[title] = dataURL;
+      localStorage.setItem('drawNotes', JSON.stringify(drawings));
+      alert('Drawing saved!');
+      clearCanvas();
+      loadSavedNotes();
+    }
+
+    // ====== AUDIO RECORDING ======
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioBlob;
+    const audioPlayback = document.getElementById('audioPlayback');
+
+    async function startRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Audio recording not supported in this browser.');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = e => {
+          audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          audioPlayback.src = URL.createObjectURL(audioBlob);
+          audioPlayback.style.display = 'block';
+        };
+        mediaRecorder.start();
+        alert('Recording started...');
+      } catch (err) {
+        alert('Could not start recording: ' + err);
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        alert('Recording stopped.');
+      }
+    }
+
+    function saveAudioNote() {
+      const title = document.getElementById('audioTitle').value.trim();
+      if (!title) {
+        alert('Please enter a title');
+        return;
+      }
+      if (!audioBlob) {
+        alert('No audio recorded');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        let audioNotes = JSON.parse(localStorage.getItem('audioNotes') || '{}');
+        audioNotes[title] = reader.result; // base64 data url
+        localStorage.setItem('audioNotes', JSON.stringify(audioNotes));
+        alert('Audio note saved!');
+        document.getElementById('audioTitle').value = '';
+        audioPlayback.style.display = 'none';
+        audioPlayback.src = '';
+        audioBlob = null;
+        loadSavedNotes();
+      };
+      reader.readAsDataURL(audioBlob);
+    }
+
+    function deleteAudioNote() {
+      const title = document.getElementById('audioTitle').value.trim();
+      if (!title) {
+        alert('Enter the title of the audio note to delete');
+        return;
+      }
+      const audioNotes = JSON.parse(localStorage.getItem('audioNotes') || '{}');
+      if (audioNotes[title]) {
+        delete audioNotes[title];
+        localStorage.setItem('audioNotes', JSON.stringify(audioNotes));
+        alert('Audio note deleted!');
+        document.getElementById('audioTitle').value = '';
+        audioPlayback.style.display = 'none';
+        audioPlayback.src = '';
+        loadSavedNotes();
+      } else {
+        alert('No such audio note found');
+      }
+    }
+
+    // ====== IMAGE NOTES ======
+
+    // To store images as base64 strings
+    function saveImageNote() {
+      const title = document.getElementById('imageTitle').value.trim();
+      const input = document.getElementById('imageInput');
+      if (!title) {
+        alert('Enter a title for image note');
+        return;
+      }
+      if (input.files.length === 0) {
+        alert('Please select an image to upload');
+        return;
+      }
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        let imageNotes = JSON.parse(localStorage.getItem('imageNotes') || '{}');
+        imageNotes[title] = reader.result; // base64
+        localStorage.setItem('imageNotes', JSON.stringify(imageNotes));
+        alert('Image note saved!');
+        document.getElementById('imageTitle').value = '';
+        input.value = '';
+        loadStoredImages();
+        loadSavedNotes();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadStoredImages() {
+      const container = document.getElementById('storedImages');
+      container.innerHTML = '';
+      const imageNotes = JSON.parse(localStorage.getItem('imageNotes') || '{}');
+      for (const [title, base64] of Object.entries(imageNotes)) {
+        const img = document.createElement('img');
+        img.src = base64;
+        img.alt = title;
+        img.title = title;
+        img.style.width = '100px';
+        img.style.height = 'auto';
+        img.style.borderRadius = '6px';
+        img.style.border = '1px solid #ccc';
+        container.appendChild(img);
+      }
+    }
+
+    function deleteImageNote() {
+      const title = document.getElementById('imageTitle').value.trim();
+      if (!title) {
+        alert('Enter the title of the image note to delete');
+        return;
+      }
+      const imageNotes = JSON.parse(localStorage.getItem('imageNotes') || '{}');
+      if (imageNotes[title]) {
+        delete imageNotes[title];
+        localStorage.setItem('imageNotes', JSON.stringify(imageNotes));
+        alert('Image note deleted!');
+        document.getElementById('imageTitle').value = '';
+        loadStoredImages();
+        loadSavedNotes();
+      } else {
+        alert('No such image note found');
+      }
+    }
+
+    // ====== SAVED NOTES PANEL ======
+
+    function loadSavedNotes() {
+      const container = document.getElementById('savedNotesList');
+      container.innerHTML = '';
+
+      // Text Notes
+      const textNotes = JSON.parse(localStorage.getItem('textNotes') || '{}');
+      for (const [title, content] of Object.entries(textNotes)) {
+        const div = document.createElement('div');
+        div.style.borderBottom = '1px solid #ccc';
+        div.style.padding = '0.5rem 0';
+
+        const heading = document.createElement('strong');
+        heading.textContent = `[Text] ${title}`;
+        heading.style.cursor = 'pointer';
+        heading.onclick = () => {
+          showPanel('textPanel');
+          document.getElementById('textTitle').value = title;
+          document.getElementById('textContent').value = content;
+        };
+
+        div.appendChild(heading);
+        container.appendChild(div);
+      }
+
+      // List Notes
+      const listNotes = JSON.parse(localStorage.getItem('listNotes') || '{}');
+      for (const [title, items] of Object.entries(listNotes)) {
+        const div = document.createElement('div');
+        div.style.borderBottom = '1px solid #ccc';
+        div.style.padding = '0.5rem 0';
+
+        const heading = document.createElement('strong');
+        heading.textContent = `[List] ${title}`;
+        heading.style.cursor = 'pointer';
+        heading.onclick = () => {
+          showPanel('listPanel');
+          document.getElementById('listTitle').value = title;
+          const listItemsContainer = document.getElementById('listItems');
+          listItemsContainer.innerHTML = '';
+          items.forEach(({ text, checked }) => {
+            const item = document.createElement('div');
+            item.className = 'note-list-item';
+            item.innerHTML = `
+              <input type="checkbox" ${checked ? 'checked' : ''} />
+              <input type="text" value="${text.replace(/"/g, '&quot;')}" />
+            `;
+            listItemsContainer.appendChild(item);
+          });
+        };
+
+        div.appendChild(heading);
+        container.appendChild(div);
+      }
+
+      // Drawings
+      const drawNotes = JSON.parse(localStorage.getItem('drawNotes') || '{}');
+      for (const [title, dataURL] of Object.entries(drawNotes)) {
+        const div = document.createElement('div');
+        div.style.borderBottom = '1px solid #ccc';
+        div.style.padding = '0.5rem 0';
+
+        const heading = document.createElement('strong');
+        heading.textContent = `[Drawing] ${title}`;
+        heading.style.cursor = 'pointer';
+        heading.onclick = () => {
+          showPanel('drawPanel');
+          const img = new Image();
+          img.onload = () => {
+            clearCanvas();
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          };
+          img.src = dataURL;
+        };
+
+        div.appendChild(heading);
+        container.appendChild(div);
+      }
+
+      // Audio Notes
+      const audioNotes = JSON.parse(localStorage.getItem('audioNotes') || '{}');
+      for (const [title, base64] of Object.entries(audioNotes)) {
+        const div = document.createElement('div');
+        div.style.borderBottom = '1px solid #ccc';
+        div.style.padding = '0.5rem 0';
+
+        const heading = document.createElement('strong');
+        heading.textContent = `[Audio] ${title}`;
+        heading.style.cursor = 'pointer';
+        heading.onclick = () => {
+          showPanel('audioPanel');
+          document.getElementById('audioTitle').value = title;
+          audioPlayback.src = base64;
+          audioPlayback.style.display = 'block';
+        };
+
+        div.appendChild(heading);
+        container.appendChild(div);
+      }
+
+      // Image Notes
+      const imageNotes = JSON.parse(localStorage.getItem('imageNotes') || '{}');
+      for (const [title, base64] of Object.entries(imageNotes)) {
+        const div = document.createElement('div');
+        div.style.borderBottom = '1px solid #ccc';
+        div.style.padding = '0.5rem 0';
+
+        const heading = document.createElement('strong');
+        heading.textContent = `[Image] ${title}`;
+        heading.style.cursor = 'pointer';
+        heading.onclick = () => {
+          showPanel('imagePanel');
+          document.getElementById('imageTitle').value = title;
+          // Show the selected image below
+          const container = document.getElementById('storedImages');
+          container.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = base64;
+          img.alt = title;
+          img.style.width = '150px';
+          img.style.borderRadius = '6px';
+          img.style.border = '1px solid #ccc';
+          container.appendChild(img);
+        };
+
+        div.appendChild(heading);
+        container.appendChild(div);
+      }
+
+      if (container.innerHTML === '') {
+        container.innerHTML = '<p>No saved notes found.</p>';
+      }
+    }
+
+    function clearSavedNotes() {
+      if (confirm('Are you sure you want to clear all saved notes? This cannot be undone.')) {
+        localStorage.clear();
+        alert('All saved notes cleared!');
+        loadSavedNotes();
+        showEmptyState();
+      }
+    }
+
+    // ====== SEARCH ======
+
+    function searchNotes() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const container = document.getElementById('savedNotesList');
+      if (!container) return;
+      const children = Array.from(container.children);
+      if (query === '') {
+        children.forEach(child => (child.style.display = 'block'));
+        return;
+      }
+      children.forEach(child => {
+        if (child.textContent.toLowerCase().includes(query)) {
+          child.style.display = 'block';
+        } else {
+          child.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
